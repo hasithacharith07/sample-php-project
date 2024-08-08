@@ -13,6 +13,10 @@ on:
         description: 'Skip installing dependencies'
         required: false
         default: 'false'
+      run_qa_tests:
+        description: 'Run QA tests'
+        required: false
+        default: 'false'
 
 jobs:
   checkout:
@@ -47,14 +51,18 @@ jobs:
   qa-testing:
     runs-on: ubuntu-latest
     needs: deploy-to-qa
+    if: ${{ github.event.inputs.run_qa_tests == 'true' }}
+    strategy:
+      matrix:
+        server: [qa-server-1, qa-server-2, qa-server-3]
     steps:
-      - name: QA Testing (Dummy Test)
+      - name: QA Testing on ${{ matrix.server }}
         run: |
-          echo "Running QA tests..."
+          echo "Running QA tests on ${{ matrix.server }}..."
           # Simulate QA test
           echo "<?php echo 'Hello, World!'; ?>" > index.php
           php index.php | grep "Hello, World!"
-          echo "QA tests simulated."
+          echo "QA tests simulated on ${{ matrix.server }}."
 
   merge-to-master:
     runs-on: ubuntu-latest
