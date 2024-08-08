@@ -1,12 +1,18 @@
 name: CI/CD Pipeline
 
 on:
-  pull_request:
-    branches:
-      - master
   push:
     branches:
       - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      skip_dependencies:
+        description: 'Skip installing dependencies'
+        required: false
+        default: 'false'
 
 jobs:
   checkout:
@@ -18,6 +24,7 @@ jobs:
   install-dependencies:
     runs-on: ubuntu-latest
     needs: checkout
+    if: ${{ github.event.inputs.skip_dependencies != 'true' }}
     steps:
       - name: Install PHP and Composer
         run: |
@@ -29,7 +36,7 @@ jobs:
 
   deploy-to-qa:
     runs-on: ubuntu-latest
-    needs: install-dependencies
+    needs: [checkout, install-dependencies]
     steps:
       - name: Deploy to QA (Dummy Step)
         run: |
@@ -45,7 +52,8 @@ jobs:
         run: |
           echo "Running QA tests..."
           # Simulate QA test
-          curl -s http://localhost/index.php | grep "Hello, World!"
+          echo "<?php echo 'Hello, World!'; ?>" > index.php
+          php index.php | grep "Hello, World!"
           echo "QA tests simulated."
 
   merge-to-master:
