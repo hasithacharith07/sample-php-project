@@ -1,0 +1,7 @@
+{
+  "name": "hasithacharith07/sample-php-project",
+  "require": {
+    "php": ">=7.4"
+  }
+}
+
