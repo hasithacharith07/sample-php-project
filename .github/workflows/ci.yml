@@ -1,31 +1,70 @@
-name: CI
+name: CI/CD Pipeline
 
 on:
-  push:
-    branches:
-      - master
-      - dev
-      - qa
   pull_request:
     branches:
       - master
-      - dev
-      - qa
+  push:
+    branches:
+      - master
 
 jobs:
-  test:
-
+  checkout:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '7.4'
+  install-dependencies:
+    runs-on: ubuntu-latest
+    needs: checkout
+    steps:
+      - name: Install PHP and Composer
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y php php-cli php-mbstring unzip curl
+          curl -sS https://getcomposer.org/installer | php
+          sudo mv composer.phar /usr/local/bin/composer
+          composer install
 
-    - name: Install dependencies
-      run: composer install --no-progress --no-suggest --prefer-dist
+  deploy-to-qa:
+    runs-on: ubuntu-latest
+    needs: install-dependencies
+    steps:
+      - name: Deploy to QA (Dummy Step)
+        run: |
+          echo "Deploying to QA environment..."
+          # Simulate deployment
+          echo "QA deployment simulated."
+
+  qa-testing:
+    runs-on: ubuntu-latest
+    needs: deploy-to-qa
+    steps:
+      - name: QA Testing (Dummy Test)
+        run: |
+          echo "Running QA tests..."
+          # Simulate QA test
+          curl -s http://localhost/index.php | grep "Hello, World!"
+          echo "QA tests simulated."
+
+  merge-to-master:
+    runs-on: ubuntu-latest
+    needs: qa-testing
+    steps:
+      - name: Merge Pull Request (Dummy Step)
+        run: |
+          echo "Merging to master branch..."
+          # Simulate merging
+          echo "Merge simulated."
+
+  deploy-to-production:
+    runs-on: ubuntu-latest
+    needs: merge-to-master
+    steps:
+      - name: Deploy to Production (Dummy Step)
+        run: |
+          echo "Deploying to production environment..."
+          # Simulate production deployment
+          echo "Production deployment simulated."
 
