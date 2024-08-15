@@ -1,0 +1,24 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCvruTI799vxcsRaQBe1Npna3OUsHPrzdetZD2T6EwtVO3sZWdS5IT0jp7/q/WKhaCpLLb5sVAWtFi6VQAz/NZJl+blK6XfjsuUsheW9HawC+pW9MC/7wgqXqVDCZjbwwdO/QmnxYgcWHOxPqx+tnKg1WypMMsk56cTwXvoyEIwXDIeGXyseiOgroRhCrq8LnEd1OIj4jLceTAO5sz2fuy7fBdgG8hBGfG0RtNDekCPf8KFzM9hoGirpFe982Zm2c6hDA6GLqW/7JdipB0gyUQ6dYmdLuPunn97bubykWuSuWg795J7cIBsPbR5X18rYkkrqJJcU8WbKSlRa0D3spaeiY26VNiMrZUwDMvjHyH1Jj/BgkCofUrX0W85uUf/EZxP1331CnQX5gA6JTFQim5wz5jw5OAW9qahblzyf5qEOvmfffgnI4NjaNeAv/aeKXXpabO6wd+Z10pG7Z18cgLLek5Pl8rWfuLgFc3jyDr8VlUT7IkbHtp5q+QN0/Vh8Cd2Q3eE2il+kL8kYeMxEz6FmgHooLyoeRjwqcSjFiPx2btOpwjx3nnV4ogCclYZXGWIMDFZZgPlHtyE2cEcqLBk8wdgxT/OSkFRxmhhR8VoEV4cUZNxx//WkfDPnqhQN+jRWz2TWzdFmtzKjrpNp5PDmxgmv7cNEV1QaLBaS+sUsQ== hp@DESKTOP-8NAO5H3 }}
+
+      - name: Deploy to EC2
+        run: |
+          rsync -avz -e "ssh -o StrictHostKeyChecking=no" ./ ec2-user@ec2-16-170-201-183.eu-north-1.compute.amazonaws.com:/var/www/html/
+
