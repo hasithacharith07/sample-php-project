@@ -4,8 +4,19 @@ on:
   push:
     branches:
       - dev
+  workflow_dispatch:
+    inputs:
+      qa_server:
+        description: 'Select the QA server to deploy'
+        required: true
+        default: 'qa1'
+        type: choice
+        options:
+          - 'qa1'
+          - 'qa2'
 
 jobs:
+  # Step 1: Parallel QA Deployments
   deploy-qa:
     runs-on: ubuntu-latest
     strategy:
@@ -33,21 +44,20 @@ jobs:
         fi
       shell: bash
 
+  # Step 2: Manual approval for production deployment
   approve-qa:
     needs: deploy-qa
     runs-on: ubuntu-latest
     steps:
-    - name: Wait for QA approval
-      uses: actions/github-script@v6
-      with:
-        script: |
-          return {
-            'qa_approved': prompt("Please select the QA server to proceed:", ["qa1", "qa2"])
-          }
+    - name: Manual QA Approval
+      run: |
+        echo "Manual approval needed. Proceed to the GitHub Actions UI to trigger the production deployment."
 
+  # Step 3: Deploy to Production Server
   deploy-prod:
     needs: approve-qa
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -59,7 +69,7 @@ jobs:
         echo "${{ secrets.EC2_SSH_KEY }}" > ssh_key
         chmod 600 ssh_key
 
-    - name: Deploy to Production Server
+    - name: Ensure Target Directory Exists and Deploy to Production Server
       run: |
         ssh -o StrictHostKeyChecking=no -i ssh_key ubuntu@ec2-13-60-248-146.eu-north-1.compute.amazonaws.com "sudo mkdir -p /var/www/html/ && sudo chown ubuntu:ubuntu /var/www/html/"
         scp -o StrictHostKeyChecking=no -i ssh_key -r * ubuntu@ec2-13-60-248-146.eu-north-1.compute.amazonaws.com:/var/www/html/
