@@ -17,8 +17,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout code from dev branch
       uses: actions/checkout@v2
+      with:
+        ref: dev
 
     - name: Set up SSH
       run: |
