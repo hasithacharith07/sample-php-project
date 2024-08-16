@@ -3,7 +3,7 @@ name: Deploy to AWS EC2
 on:
   push:
     branches:
-      - dev
+      - dev  # Adjust this if you're using a different branch
 
 jobs:
   deploy:
@@ -11,20 +11,14 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v2
 
     - name: Set up SSH
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ec2-13-60-31-134.eu-north-1.compute.amazonaws.com >> ~/.ssh/known_hosts
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
-    - name: Deploy to EC2
+    - name: Copy files to EC2
       run: |
-        ssh -o StrictHostKeyChecking=no ubuntu@ec2-13-60-31-134.eu-north-1.compute.amazonaws.com <<EOF
-          sudo rm -rf /var/www/html/*
-          sudo git clone https://github.com/hasithacharith07/sample-php-project.git /var/www/html/
-          sudo systemctl restart apache2
-        EOF
+        scp -o StrictHostKeyChecking=no -r * ubuntu@ec2-13-60-66-32.eu-north-1.compute.amazonaws.com:/var/www/html/
 
