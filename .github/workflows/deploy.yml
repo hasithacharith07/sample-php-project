@@ -6,7 +6,6 @@ on:
       - dev
 
 jobs:
-  # Step 1: Parallel QA Deployments
   deploy-qa:
     runs-on: ubuntu-latest
     strategy:
@@ -23,20 +22,20 @@ jobs:
         echo "${{ secrets.EC2_SSH_KEY }}" > ssh_key
         chmod 600 ssh_key
 
-    - name: Deploy to QA Server
+    - name: Ensure Target Directory Exists and Deploy to QA Server
       run: |
         if [ "${{ matrix.server }}" == "qa1" ]; then
+          ssh -o StrictHostKeyChecking=no -i ssh_key ubuntu@ec2-13-60-170-4.eu-north-1.compute.amazonaws.com "sudo mkdir -p /var/www/html/ && sudo chown ubuntu:ubuntu /var/www/html/"
           scp -o StrictHostKeyChecking=no -i ssh_key -r * ubuntu@ec2-13-60-170-4.eu-north-1.compute.amazonaws.com:/var/www/html/
         elif [ "${{ matrix.server }}" == "qa2" ]; then
+          ssh -o StrictHostKeyChecking=no -i ssh_key ubuntu@ec2-16-171-150-100.eu-north-1.compute.amazonaws.com "sudo mkdir -p /var/www/html/ && sudo chown ubuntu:ubuntu /var/www/html/"
           scp -o StrictHostKeyChecking=no -i ssh_key -r * ubuntu@ec2-16-171-150-100.eu-north-1.compute.amazonaws.com:/var/www/html/
         fi
       shell: bash
 
-  # Step 2: Manual approval to select the QA server for final deployment
   approve-qa:
     needs: deploy-qa
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' }}
     steps:
     - name: Wait for QA approval
       uses: actions/github-script@v6
@@ -46,11 +45,9 @@ jobs:
             'qa_approved': prompt("Please select the QA server to proceed:", ["qa1", "qa2"])
           }
 
-  # Step 3: Trigger production deployment
   deploy-prod:
     needs: approve-qa
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -63,6 +60,8 @@ jobs:
         chmod 600 ssh_key
 
     - name: Deploy to Production Server
-      run: scp -o StrictHostKeyChecking=no -i ssh_key -r * ubuntu@ec2-13-60-248-146.eu-north-1.compute.amazonaws.com:/var/www/html/
+      run: |
+        ssh -o StrictHostKeyChecking=no -i ssh_key ubuntu@ec2-13-60-248-146.eu-north-1.compute.amazonaws.com "sudo mkdir -p /var/www/html/ && sudo chown ubuntu:ubuntu /var/www/html/"
+        scp -o StrictHostKeyChecking=no -i ssh_key -r * ubuntu@ec2-13-60-248-146.eu-north-1.compute.amazonaws.com:/var/www/html/
       shell: bash
 
