@@ -16,12 +16,9 @@ on:
           - 'qa2'
 
 jobs:
-  # Step 1: Parallel QA Deployments
+  # Step 1: Deploy to Selected QA Server
   deploy-qa:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        server: [qa1, qa2]  # Parallel deployment to both QA servers
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -35,10 +32,10 @@ jobs:
 
     - name: Ensure Target Directory Exists and Deploy to QA Server
       run: |
-        if [ "${{ matrix.server }}" == "qa1" ]; then
+        if [ "${{ github.event.inputs.qa_server }}" == "qa1" ]; then
           ssh -o StrictHostKeyChecking=no -i ssh_key ubuntu@ec2-13-60-170-4.eu-north-1.compute.amazonaws.com "sudo mkdir -p /var/www/html/ && sudo chown ubuntu:ubuntu /var/www/html/"
           scp -o StrictHostKeyChecking=no -i ssh_key -r * ubuntu@ec2-13-60-170-4.eu-north-1.compute.amazonaws.com:/var/www/html/
-        elif [ "${{ matrix.server }}" == "qa2" ]; then
+        elif [ "${{ github.event.inputs.qa_server }}" == "qa2" ]; then
           ssh -o StrictHostKeyChecking=no -i ssh_key ubuntu@ec2-16-171-150-100.eu-north-1.compute.amazonaws.com "sudo mkdir -p /var/www/html/ && sudo chown ubuntu:ubuntu /var/www/html/"
           scp -o StrictHostKeyChecking=no -i ssh_key -r * ubuntu@ec2-16-171-150-100.eu-north-1.compute.amazonaws.com:/var/www/html/
         fi
