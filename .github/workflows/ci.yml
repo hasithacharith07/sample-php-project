@@ -1,0 +1,27 @@
+name: Deploy PHP App to EC2
+
+on:
+  push:
+    branches:
+      - main  # Set your branch here, typically `main` or `master`
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # If using a GitHub-hosted runner, use ubuntu-latest
+    steps:
+      # Step 1: Checkout the latest code from the repo
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Copy the files to the EC2 instance via SSH
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ec2-54-90-244-247.compute-1.amazonaws.com
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            cd /var/www/html
+            sudo git pull origin main
+            sudo systemctl restart apache2
