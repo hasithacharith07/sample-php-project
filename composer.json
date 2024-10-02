@@ -1,7 +1,9 @@
 {
-  "name": "hasithacharith07/php-project",
-  "description": "A sample PHP project",
-  "require": {}
+    "name": "hasithacharith01/sample-php-project",
+    "description": "A short description of your project",
+    "require": {
+        "php": ">=7.4",
+        "some-package/some-package": "^1.0"
+    }
 }
-
 
